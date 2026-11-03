@@ -1,44 +1,46 @@
-LÍDER ENCANTADORA — INTEGRAÇÃO FIREBASE (ETAPA DE TESTE)
+LÍDER ENCANTADORA — FIREBASE + CLOUDINARY
 
 O QUE ESTA VERSÃO FAZ
-- Lê os produtos do Cloud Firestore e atualiza a vitrine em tempo real.
-- Permite entrar no painel com e-mail e senha do Firebase Authentication.
+- Lê produtos do Cloud Firestore e atualiza a vitrine em tempo real.
+- Usa Firebase Authentication para o acesso administrativo.
 - Cadastra, edita e exclui produtos no Firestore.
 - Sincroniza configurações da loja entre aparelhos.
+- Envia fotos novas ao Cloudinary usando upload preset unsigned; grava no Firestore somente a URL segura da imagem.
+- Comprime as fotos no navegador e aceita JPG, PNG e WEBP de até 5 MB antes da compressão.
 - Mantém o carrinho no navegador do cliente.
-- Permite selecionar fotos da galeria. As fotos são comprimidas e guardadas no próprio documento do produto no Firestore, sem usar Firebase Storage.
-- Mantém pedido pelo WhatsApp e confirmação de Pix manual.
+- Encaminha pedidos pelo WhatsApp; pagamento e confirmação do Pix continuam manuais.
 
-CONTA ADMINISTRADORA DE TESTE
-As regras incluídas autorizam somente o e-mail:
-hrproplay@gmail.com
+CLOUDINARY CONFIGURADO NO CÓDIGO
+- Cloud name: zcbedlgt
+- Upload preset: lider_encantadora
+- Pasta definida no preset: lider_encantadora/produtos
+- Modo: Unsigned
 
-Se o e-mail administrativo for outro, altere esse endereço em DOIS lugares:
-1. app.js, na constante ADMIN_EMAILS.
-2. firestore.rules, na função isStoreAdmin().
-Os dois endereços precisam ser exatamente iguais.
+IMPORTANTE SOBRE SEGURANÇA DO CLOUDINARY
+O preset unsigned é público por natureza. A validação de formato e tamanho feita no navegador melhora o uso normal, mas não impede que terceiros tentem enviar arquivos diretamente à API. No painel Cloudinary, edite o preset lider_encantadora e configure também no servidor: Allowed formats = jpg,jpeg,png,webp; Max file size = 5242880 bytes (5 MB), se esses campos estiverem disponíveis. Não coloque API Secret no app.js. Monitore o uso/créditos da conta.
 
-ANTES DE PUBLICAR — FAÇA ISTO NO FIREBASE
-1. Abra Firebase Console > Authentication > Usuários.
-2. Confirme que hrproplay@gmail.com aparece na lista e que você sabe a senha definida para essa conta.
-   - Se não souber a senha, use a opção de redefinição de senha do Authentication ou crie outro usuário de teste.
-3. Abra Cloud Firestore > Segurança > Editar regras.
-4. Substitua TODO o conteúdo das regras pelas linhas do arquivo firestore.rules deste pacote.
-5. Clique em Publicar.
-6. Não altere nem habilite o Firebase Storage. Esta versão não depende dele.
-7. Em Authentication > Método de login, confirme que E-mail/senha está ativado.
+FIREBASE
+- O projeto e a configuração web Firebase já estavam neste pacote.
+- A conta administrativa configurada no código e nas regras é hrproplay@gmail.com.
+- As regras Firestore precisam autorizar exatamente esse e-mail.
+- Não habilite Firebase Storage; esta versão usa Cloudinary para imagens.
 
 PUBLICAÇÃO NO GITHUB PAGES
 1. Extraia este ZIP.
-2. No repositório GitHub, substitua os arquivos index.html, app.js, style.css, manifest.json, sw.js e icon.svg pelos arquivos deste pacote.
-3. Envie também o arquivo firestore.rules e este LEIA-ME.txt. O arquivo de regras é uma referência para copiar no console; o GitHub Pages não publica as regras automaticamente.
+2. Substitua no repositório os arquivos index.html, app.js, style.css, manifest.json, sw.js e icon.svg pelos arquivos deste pacote.
+3. Mantenha firestore.rules como referência e confira no Console do Firebase se as regras publicadas autorizam hrproplay@gmail.com. O arquivo não publica regras automaticamente.
 4. Aguarde o GitHub Pages concluir a publicação.
-5. Abra o endereço do site no Chrome e atualize a página. Se o app instalado mostrar a versão antiga, feche-o completamente e abra o endereço no Chrome novamente.
+5. Abra o site no Chrome e atualize. Se o app instalado mostrar a versão antiga, feche-o completamente e abra o site novamente. O cache do service worker foi atualizado para v3.
 
-LIMITES IMPORTANTES
-- Esta etapa sincroniza catálogo e configurações com o Firestore.
-- As imagens são comprimidas e armazenadas junto aos documentos Firestore. Use fotos pequenas. O Firestore tem limite de tamanho por documento (1 MiB); esta versão limita a imagem para reduzir o risco, mas não é um sistema de armazenamento de imagens em grande escala.
-- O pedido continua sendo encaminhado pelo WhatsApp. Não há pagamento Pix automático nem reserva automática de estoque.
-- A regra permite leitura pública da vitrine e escrita somente para hrproplay@gmail.com. Não compartilhe a senha dessa conta.
-- A chave web apiKey do Firebase identifica o projeto, mas não substitui as regras de segurança.
-- Teste primeiro com um produto sem dados sensíveis antes de divulgar a loja.
+TESTE RECOMENDADO
+1. Entre na Área da loja com hrproplay@gmail.com.
+2. Cadastre um produto de teste com uma foto pequena.
+3. Salve e confirme que a foto aparece na vitrine pública.
+4. Abra a loja em outro aparelho/navegador para conferir a sincronização.
+5. Apague o produto de teste depois da validação.
+
+LIMITES
+- A integração Cloudinary foi adicionada ao código, mas precisa ser publicada no GitHub Pages para entrar em funcionamento no site público.
+- Produtos e configurações usam Firestore; imagens novas usam Cloudinary. Imagens antigas em base64 continuam sendo exibidas, mas não são migradas automaticamente.
+- Não há pagamento Pix automático, gateway de cartão, baixa automática de estoque nem gestão completa de pedidos.
+- Não compartilhe a senha administrativa. A apiKey web Firebase não substitui as regras de segurança.

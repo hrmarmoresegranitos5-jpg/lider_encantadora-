@@ -10,7 +10,12 @@ const firebaseConfig = {
   messagingSenderId: "812241975670",
   appId: "1:812241975670:web:a41dd38b5d6b2efe6da257"
 };
-const ADMIN_EMAILS = ["hrproplay@gmail.com"]; // Conta de teste autorizada nas regras do Firestore.
+const ADMIN_EMAILS = ["hrproplay@gmail.com"]; // Deve corresponder ao e-mail autorizado nas regras do Firestore.
+// Cloudinary: dados públicos próprios para upload unsigned; nunca coloque API Secret no navegador.
+const CLOUDINARY_CLOUD_NAME = "zcbedlgt";
+const CLOUDINARY_UPLOAD_PRESET = "lider_encantadora";
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
 const $ = s => document.querySelector(s);
 const money = n => Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -74,8 +79,16 @@ document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{openTab(b.dat
 $("#newProduct").onclick=()=>{resetForm();$("#productForm").hidden=false;$("#productForm").scrollIntoView({behavior:"smooth"})};
 $("#cancelEdit").onclick=resetForm;$("#cancelEdit2").onclick=resetForm;
 $("#pOnSale").onchange=()=>$("#saleFields").hidden=!$("#pOnSale").checked;
-$("#pImageFile").onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith("image/"))return toast("Escolha uma imagem.");try{draftImage=await compressImage(file);$("#previewImg").src=draftImage;$("#imagePreview").hidden=false}catch(err){toast("Não foi possível carregar essa foto.")}};
-function compressImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{const max=650,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement("canvas");canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);let quality=.58,data=canvas.toDataURL("image/jpeg",quality);while(data.length>650000&&quality>.30){quality-=.06;data=canvas.toDataURL("image/jpeg",quality)}if(data.length>700000)return reject(new Error("Foto muito grande"));resolve(data)};img.src=reader.result};reader.readAsDataURL(file)})}
+$("#pImageFile").onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(!ALLOWED_IMAGE_TYPES.includes(file.type))return toast("Use uma foto JPG, PNG ou WEBP.");if(file.size>MAX_IMAGE_BYTES)return toast("A foto deve ter no máximo 5 MB.");try{draftImage=await compressImage(file);$("#previewImg").src=draftImage;$("#imagePreview").hidden=false;toast("Foto pronta. Ela será enviada ao salvar o produto.")}catch(err){console.error(err);toast("Não foi possível preparar essa foto.")}};
+function compressImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{const max=1200,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);let quality=.82,data=canvas.toDataURL("image/jpeg",quality);while(data.length>1500000&&quality>.45){quality-=.07;data=canvas.toDataURL("image/jpeg",quality)}if(data.length>1500000)return reject(new Error("Foto muito grande após compressão"));resolve(data)};img.src=reader.result};reader.readAsDataURL(file)})}
+async function uploadProductImage(dataUrl){
+ if(!dataUrl?.startsWith("data:image/"))return dataUrl||"";
+ const body=new FormData();body.append("file",dataUrl);body.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+ const response=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,{method:"POST",body});
+ const result=await response.json();
+ if(!response.ok||!result.secure_url)throw new Error(result.error?.message||"Falha no envio da foto ao Cloudinary.");
+ return result.secure_url;
+}
 $("#removeImage").onclick=()=>{draftImage="";$("#pImageFile").value="";$("#imagePreview").hidden=true};
 $("#productForm").onsubmit=async e=>{
  e.preventDefault();if(!isAdmin())return toast("Entre com a conta autorizada antes de salvar.");
@@ -84,8 +97,10 @@ $("#productForm").onsubmit=async e=>{
  if(onSale&&(!salePrice||salePrice<=0||salePrice>=price))return toast("O preço promocional deve ser menor que o preço normal.");
  const old=products.find(p=>p.id===editingId),id=editingId||crypto.randomUUID();
  const p={name,price,category:$("#pCategory").value,stock,onSale,salePrice:onSale?salePrice:0,sizes:$("#pSizes").value.trim(),colors:$("#pColors").value.trim(),image:draftImage||old?.image||"",description:$("#pDescription").value.trim(),updatedAt:new Date().toISOString()};
- try{toast("Salvando produto na loja...");await setDoc(doc(db,"products",id),p);resetForm();toast(old?"Produto atualizado para todos!":"Produto publicado para todos!")}
- catch(err){console.error(err);toast(err.code==="permission-denied"?"Sem permissão. Confira as regras do Firestore.":"Erro ao salvar. Verifique a internet e o tamanho da foto.")}
+ const submitButton=$("#productForm button[type=submit]");
+ try{submitButton.disabled=true;submitButton.textContent="Enviando...";toast(draftImage.startsWith("data:image/")?"Enviando foto para a nuvem...":"Salvando produto na loja...");p.image=await uploadProductImage(draftImage||old?.image||"");p.imageProvider=p.image?"cloudinary":(old?.imageProvider||"");await setDoc(doc(db,"products",id),p);resetForm();toast(old?"Produto atualizado para todos!":"Produto publicado para todos!")}
+ catch(err){console.error(err);toast(err.code==="permission-denied"?"Sem permissão. Confira as regras do Firestore.":(err.message||"Erro ao salvar produto. Confira sua conexão."))}
+ finally{submitButton.disabled=false;submitButton.textContent="Salvar produto"}
 };
 $("#adminProducts").onclick=async e=>{const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-remove]");if(edit){const p=products.find(x=>x.id===edit.dataset.edit);if(p)fillForm(p)}if(del){if(!confirm("Deseja excluir este produto da loja?"))return;try{await deleteDoc(doc(db,"products",del.dataset.remove));toast("Produto excluído.")}catch(err){toast("Não foi possível excluir. Confira as permissões.")}}};
 $("#promotionList").onclick=e=>{const b=e.target.closest("[data-edit]");if(!b)return;openTab("products");const p=products.find(x=>x.id===b.dataset.edit);if(p)fillForm(p)};
