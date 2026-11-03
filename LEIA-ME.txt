@@ -1,46 +1,36 @@
-LÍDER ENCANTADORA — FIREBASE + CLOUDINARY
+LÍDER ENCANTADORA — ATUALIZAÇÃO DO PAINEL 2.1
 
-O QUE ESTA VERSÃO FAZ
-- Lê produtos do Cloud Firestore e atualiza a vitrine em tempo real.
-- Usa Firebase Authentication para o acesso administrativo.
-- Cadastra, edita e exclui produtos no Firestore.
-- Sincroniza configurações da loja entre aparelhos.
-- Envia fotos novas ao Cloudinary usando upload preset unsigned; grava no Firestore somente a URL segura da imagem.
-- Comprime as fotos no navegador e aceita JPG, PNG e WEBP de até 5 MB antes da compressão.
-- Mantém o carrinho no navegador do cliente.
-- Encaminha pedidos pelo WhatsApp; pagamento e confirmação do Pix continuam manuais.
+O QUE FOI ADICIONADO
+- Painel com abas: Dados da loja, Produtos e Pedidos.
+- Cadastro de produtos no Firestore.
+- Edição e exclusão de produtos.
+- Campos de nome, categoria, descrição, preço, preço promocional, tamanhos, cores, estoque e URL pública da foto.
+- Lista de pedidos recebidos e atualização de status.
 
-CLOUDINARY CONFIGURADO NO CÓDIGO
-- Cloud name: zcbedlgt
-- Upload preset: lider_encantadora
-- Pasta definida no preset: lider_encantadora/produtos
-- Modo: Unsigned
+ARQUIVOS ALTERADOS
+- painel.html
+- painel.js
 
-IMPORTANTE SOBRE SEGURANÇA DO CLOUDINARY
-O preset unsigned é público por natureza. A validação de formato e tamanho feita no navegador melhora o uso normal, mas não impede que terceiros tentem enviar arquivos diretamente à API. No painel Cloudinary, edite o preset lider_encantadora e configure também no servidor: Allowed formats = jpg,jpeg,png,webp; Max file size = 5242880 bytes (5 MB), se esses campos estiverem disponíveis. Não coloque API Secret no app.js. Monitore o uso/créditos da conta.
+Os demais arquivos foram preservados do ZIP original.
 
-FIREBASE
-- O projeto e a configuração web Firebase já estavam neste pacote.
-- A conta administrativa configurada no código e nas regras é hrproplay@gmail.com.
-- As regras Firestore precisam autorizar exatamente esse e-mail.
-- Não habilite Firebase Storage; esta versão usa Cloudinary para imagens.
+COMO PUBLICAR
+1. Faça uma cópia de segurança do repositório atual.
+2. No repositório GitHub da loja, substitua SOMENTE painel.html e painel.js pelos arquivos deste pacote.
+3. Faça commit das alterações e aguarde o GitHub Pages publicar.
+4. Abra https://hangel-15.github.io/lider_encantadora/painel.html
+5. Entre com o e-mail autorizado hrproplay@gmail.com e a senha já cadastrada no Firebase Authentication.
+6. Teste primeiro o cadastro de um produto de teste com preço e estoque corretos; depois confira se ele aparece na vitrine.
 
-PUBLICAÇÃO NO GITHUB PAGES
-1. Extraia este ZIP.
-2. Substitua no repositório os arquivos index.html, app.js, style.css, manifest.json, sw.js e icon.svg pelos arquivos deste pacote.
-3. Mantenha firestore.rules como referência e confira no Console do Firebase se as regras publicadas autorizam hrproplay@gmail.com. O arquivo não publica regras automaticamente.
-4. Aguarde o GitHub Pages concluir a publicação.
-5. Abra o site no Chrome e atualize. Se o app instalado mostrar a versão antiga, feche-o completamente e abra o site novamente. O cache do service worker foi atualizado para v3.
+IMPORTANTE SOBRE FOTOS
+Este painel recebe um link público da foto. Ele ainda não faz upload de arquivos diretamente para o Cloudinary. Use URLs públicas de imagens já hospedadas.
 
-TESTE RECOMENDADO
-1. Entre na Área da loja com hrproplay@gmail.com.
-2. Cadastre um produto de teste com uma foto pequena.
-3. Salve e confirme que a foto aparece na vitrine pública.
-4. Abra a loja em outro aparelho/navegador para conferir a sincronização.
-5. Apague o produto de teste depois da validação.
+IMPORTANTE SOBRE FIREBASE
+O painel depende do projeto Firebase já configurado no código (lider-encantadora-2c99c).
+As regras firestore.rules deste pacote original permitem ao administrador criar/editar/excluir produtos e consultar/atualizar pedidos. Confirme no Firebase Console > Firestore Database > Regras se essas regras estão publicadas.
+A conta administrativa autorizada no código é hrproplay@gmail.com. A senha não está incluída neste pacote.
 
-LIMITES
-- A integração Cloudinary foi adicionada ao código, mas precisa ser publicada no GitHub Pages para entrar em funcionamento no site público.
-- Produtos e configurações usam Firestore; imagens novas usam Cloudinary. Imagens antigas em base64 continuam sendo exibidas, mas não são migradas automaticamente.
-- Não há pagamento Pix automático, gateway de cartão, baixa automática de estoque nem gestão completa de pedidos.
-- Não compartilhe a senha administrativa. A apiKey web Firebase não substitui as regras de segurança.
+LIMITAÇÕES
+- Não há pagamento online automático; Pix continua combinado manualmente.
+- O painel atualiza status de pedidos, mas não inclui baixa automática de estoque.
+- Fotos são informadas por URL; não há upload direto pelo painel nesta versão.
+- Esta atualização não altera a loja pública nem apaga produtos já cadastrados.
