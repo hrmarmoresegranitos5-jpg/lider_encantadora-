@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isStoreAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'hrproplay@gmail.com';
+    }
+
+    // Clientes podem consultar a vitrine, mas somente a conta da loja altera produtos.
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isStoreAdmin();
+    }
+
+    // Dados públicos necessários para exibir contato e endereço.
+    match /settings/{settingId} {
+      allow read: if settingId == 'store';
+      allow create, update, delete: if isStoreAdmin();
+    }
+
+    // Bloqueia qualquer outra coleção por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,26 +1,44 @@
-LÍDER ENCANTADORA — ATUALIZAÇÃO DO PAINEL (VERSÃO LOCAL)
+LÍDER ENCANTADORA — INTEGRAÇÃO FIREBASE (ETAPA DE TESTE)
 
-O QUE FOI MELHORADO
-- Painel administrativo dividido em Visão geral, Produtos, Promoções e Configurações.
-- Cadastro de fotos diretamente pela galeria do celular.
-- Redução automática das fotos para ocupar menos espaço.
-- Cadastro de tamanhos, cores e estoque.
-- Preço normal e preço promocional.
-- Edição e exclusão de produtos.
-- Produtos em promoção recebem selo e preço especial na vitrine.
-- Carrinho não reduz o estoque antes de a loja confirmar o pedido.
-- Mantida a identidade visual rosa, creme e elegante.
+O QUE ESTA VERSÃO FAZ
+- Lê os produtos do Cloud Firestore e atualiza a vitrine em tempo real.
+- Permite entrar no painel com e-mail e senha do Firebase Authentication.
+- Cadastra, edita e exclui produtos no Firestore.
+- Sincroniza configurações da loja entre aparelhos.
+- Mantém o carrinho no navegador do cliente.
+- Permite selecionar fotos da galeria. As fotos são comprimidas e guardadas no próprio documento do produto no Firestore, sem usar Firebase Storage.
+- Mantém pedido pelo WhatsApp e confirmação de Pix manual.
 
-COMO ATUALIZAR O SITE NO GITHUB
-1. Abra o repositório no GitHub.
-2. Entre na pasta principal onde estão index.html, app.js e style.css.
-3. Substitua os arquivos antigos pelos arquivos deste pacote: index.html, app.js, style.css e LEIA-ME.txt.
-4. Mantenha também manifest.json, sw.js e icon.svg existentes.
-5. Aguarde a publicação do GitHub Pages.
-6. No Android, feche o app da loja e abra novamente. Se não atualizar, abra o site no Chrome e atualize a página.
+CONTA ADMINISTRADORA DE TESTE
+As regras incluídas autorizam somente o e-mail:
+hrproplay@gmail.com
 
-IMPORTANTE — LIMITAÇÃO DESTA VERSÃO
-Esta é uma melhoria do visual e das funções locais. Produtos, imagens, senha, carrinho e configurações continuam salvos somente no navegador/aparelho em que forem cadastrados. Não há sincronização entre celulares nem banco de dados online.
-A senha local não é uma autenticação segura para uma loja em produção. Não use dados confidenciais.
-Os pedidos são encaminhados ao WhatsApp; o estoque e o pagamento precisam ser confirmados manualmente pela loja. Não há integração ou confirmação automática do Pix.
-Para a loja funcionar de verdade em vários aparelhos, será necessário criar a etapa seguinte com backend, banco de dados, armazenamento online de fotos e login seguro. O GitHub Pages sozinho hospeda somente arquivos estáticos.
+Se o e-mail administrativo for outro, altere esse endereço em DOIS lugares:
+1. app.js, na constante ADMIN_EMAILS.
+2. firestore.rules, na função isStoreAdmin().
+Os dois endereços precisam ser exatamente iguais.
+
+ANTES DE PUBLICAR — FAÇA ISTO NO FIREBASE
+1. Abra Firebase Console > Authentication > Usuários.
+2. Confirme que hrproplay@gmail.com aparece na lista e que você sabe a senha definida para essa conta.
+   - Se não souber a senha, use a opção de redefinição de senha do Authentication ou crie outro usuário de teste.
+3. Abra Cloud Firestore > Segurança > Editar regras.
+4. Substitua TODO o conteúdo das regras pelas linhas do arquivo firestore.rules deste pacote.
+5. Clique em Publicar.
+6. Não altere nem habilite o Firebase Storage. Esta versão não depende dele.
+7. Em Authentication > Método de login, confirme que E-mail/senha está ativado.
+
+PUBLICAÇÃO NO GITHUB PAGES
+1. Extraia este ZIP.
+2. No repositório GitHub, substitua os arquivos index.html, app.js, style.css, manifest.json, sw.js e icon.svg pelos arquivos deste pacote.
+3. Envie também o arquivo firestore.rules e este LEIA-ME.txt. O arquivo de regras é uma referência para copiar no console; o GitHub Pages não publica as regras automaticamente.
+4. Aguarde o GitHub Pages concluir a publicação.
+5. Abra o endereço do site no Chrome e atualize a página. Se o app instalado mostrar a versão antiga, feche-o completamente e abra o endereço no Chrome novamente.
+
+LIMITES IMPORTANTES
+- Esta etapa sincroniza catálogo e configurações com o Firestore.
+- As imagens são comprimidas e armazenadas junto aos documentos Firestore. Use fotos pequenas. O Firestore tem limite de tamanho por documento (1 MiB); esta versão limita a imagem para reduzir o risco, mas não é um sistema de armazenamento de imagens em grande escala.
+- O pedido continua sendo encaminhado pelo WhatsApp. Não há pagamento Pix automático nem reserva automática de estoque.
+- A regra permite leitura pública da vitrine e escrita somente para hrproplay@gmail.com. Não compartilhe a senha dessa conta.
+- A chave web apiKey do Firebase identifica o projeto, mas não substitui as regras de segurança.
+- Teste primeiro com um produto sem dados sensíveis antes de divulgar a loja.
