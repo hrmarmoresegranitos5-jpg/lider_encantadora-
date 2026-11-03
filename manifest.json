@@ -1,0 +1,20 @@
+{
+  "name": "LÍDER ENCANTADORA",
+  "short_name": "Líder Encantadora",
+  "description": "Loja online LÍDER ENCANTADORA",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fffaf9",
+  "theme_color": "#b86f88",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

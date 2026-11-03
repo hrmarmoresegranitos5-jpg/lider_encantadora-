@@ -1,0 +1,24 @@
+LÍDER ENCANTADORA — VERSÃO SIMPLES PARA GITHUB PAGES
+
+COMO PUBLICAR
+1. Crie um repositório público chamado lider-encantadora.
+2. Extraia este ZIP.
+3. Envie TODOS os arquivos desta pasta diretamente para a raiz do repositório (não envie o ZIP).
+4. No GitHub: Settings > Pages > Deploy from a branch > main > /(root) > Save.
+5. Aguarde a publicação e abra o link HTTPS do GitHub Pages.
+6. No Android, abra o link no Chrome > menu ⋮ > Instalar app ou Adicionar à tela inicial.
+
+ARQUIVOS
+index.html, style.css, app.js, manifest.json, sw.js e icon.svg devem ficar todos juntos na raiz.
+
+IMPORTANTE SOBRE ESTA VERSÃO
+- É uma PWA estática para GitHub Pages.
+- O catálogo, configurações e senha administrativa ficam no armazenamento local do navegador daquele aparelho.
+- Isso NÃO sincroniza alterações entre o celular da dona e os celulares das clientes.
+- O pedido é enviado por WhatsApp. Cadastre o WhatsApp da loja no painel administrativo.
+- Configure o WhatsApp e a chave Pix no painel.
+- Não existe confirmação automática de pagamento Pix nesta versão.
+- Para uma loja real com produtos, estoque, pedidos e administração sincronizados em vários aparelhos, será necessário ligar esta interface a um backend/banco de dados externo. GitHub Pages sozinho não fornece isso.
+- O painel inicial cria senha local no próprio aparelho. Não use essa senha como segurança de um sistema multiusuário.
+
+Este pacote é a versão simplificada para publicar e instalar pelo link do GitHub Pages; não substitui o sistema completo com backend.
