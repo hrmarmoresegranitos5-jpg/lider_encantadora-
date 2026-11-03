@@ -1,91 +1,37 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#b86f88">
-  <meta name="description" content="Loja online LÍDER ENCANTADORA — moda com charme e elegância.">
-  <link rel="manifest" href="./manifest.json">
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icon.svg">
-  <link rel="stylesheet" href="./style.css">
-  <title>LÍDER ENCANTADORA | Loja</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b86f88"><meta name="description" content="Loja online LÍDER ENCANTADORA — moda feminina e infantil.">
+<link rel="manifest" href="./manifest.json"><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
+<title>LÍDER ENCANTADORA | Loja</title>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="./"><span class="crown">♕</span><span>LÍDER <b>ENCANTADORA</b></span></a>
-    <div class="top-actions">
-      <button class="outline" id="installBtn" hidden>Instalar app</button>
-      <button class="cart-button" id="cartOpen">Sacola <span id="cartCount">0</span></button>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero">
-      <p class="eyebrow">MODA FEMININA & INFANTIL</p>
-      <h1>Seu estilo,<br><em>seu encanto.</em></h1>
-      <p>Escolha suas peças favoritas com carinho.</p>
-      <a class="hero-link" href="#vitrine">Conhecer a coleção ↓</a>
-    </section>
-
-    <section class="shop" id="vitrine">
-      <div class="section-heading">
-        <div><p class="eyebrow">NOSSA SELEÇÃO</p><h2>Vitrine da loja</h2></div>
-        <button class="text-button" id="adminOpen">Área da loja</button>
-      </div>
-      <div class="filters" id="filters"></div>
-      <div class="products" id="products"></div>
-    </section>
-  </main>
-
-  <footer><b>LÍDER ENCANTADORA</b><p>Elegância, estilo e autenticidade.</p><span id="footerAddress"></span></footer>
-
-  <div class="overlay" id="cartOverlay" hidden>
-    <section class="drawer">
-      <button class="close" data-close="cartOverlay">Fechar ✕</button>
-      <p class="eyebrow">SEUS FAVORITOS</p><h2>Sua sacola</h2>
-      <div id="cartItems"></div>
-      <div class="total"><span>Total</span><b id="cartTotal">R$ 0,00</b></div>
-      <label>Seu nome<input id="customerName" placeholder="Nome completo"></label>
-      <label>WhatsApp<input id="customerPhone" placeholder="(DDD) número"></label>
-      <label>Endereço para entrega (opcional)<input id="customerAddress" placeholder="Rua, número, bairro"></label>
-      <button class="primary full" id="checkoutBtn">Enviar pedido pelo WhatsApp</button>
-      <p class="hint">O pedido será enviado para a loja. O pagamento é combinado por Pix diretamente com a atendente.</p>
-    </section>
-  </div>
-
-  <div class="overlay" id="adminOverlay" hidden>
-    <section class="drawer admin-drawer">
-      <button class="close" data-close="adminOverlay">Fechar ✕</button>
-      <p class="eyebrow">GERENCIAMENTO LOCAL</p><h2>Área da loja</h2>
-      <div id="adminLogin">
-        <p class="hint">Crie uma senha local para proteger este painel neste aparelho.</p>
-        <label>Senha do painel<input id="adminPassword" type="password" placeholder="Crie ou informe a senha"></label>
-        <button class="primary full" id="adminEnter">Entrar</button>
-      </div>
-      <div id="adminPanel" hidden>
-        <h3>Cadastrar produto</h3>
-        <form id="productForm">
-          <label>Nome<input id="pName" required></label>
-          <label>Preço (R$)<input id="pPrice" type="number" min="0" step="0.01" required></label>
-          <label>Categoria<input id="pCategory" value="Moda feminina"></label>
-          <label>Estoque<input id="pStock" type="number" min="0" value="1"></label>
-          <label>Foto (endereço HTTPS)<input id="pImage" type="url" placeholder="https://..."></label>
-          <label>Descrição<textarea id="pDescription" rows="2"></textarea></label>
-          <button class="primary full" type="submit">Adicionar produto</button>
-        </form>
-        <h3>Produtos cadastrados</h3><div id="adminProducts"></div>
-        <h3>Dados da loja neste aparelho</h3>
-        <label>WhatsApp da loja (com DDD)<input id="storeWhatsApp" placeholder="55DDDNÚMERO"></label>
-        <label>Chave Pix para exibição<input id="storePix" placeholder="Sua chave Pix"></label>
-        <label>Endereço da loja<input id="storeAddress" value="Rua Lagoa do Padre, 623 — Pilão Arcado, BA"></label>
-        <button class="primary full" id="saveSettings">Salvar configurações</button>
-        <p class="hint warning">Atenção: este painel e os dados ficam somente neste navegador/aparelho. Para compartilhar produtos, estoque e pedidos entre vários celulares, é necessário conectar um banco de dados e um serviço de servidor.</p>
-        <button class="text-button" id="adminExit">Sair do painel</button>
-      </div>
-    </section>
-  </div>
-  <div class="toast" id="toast" role="status"></div>
-  <script src="./app.js"></script>
-</body>
-</html>
+<header class="topbar"><a class="brand" href="./"><span class="crown">♕</span><span>LÍDER <b>ENCANTADORA</b></span></a><div class="top-actions"><button class="outline" id="installBtn" hidden>Instalar app</button><button class="cart-button" id="cartOpen">Sacola <span id="cartCount">0</span></button></div></header>
+<main>
+<section class="hero"><p class="eyebrow">MODA FEMININA & INFANTIL</p><h1>Seu estilo,<br><em>seu encanto.</em></h1><p>Escolha suas peças favoritas com carinho.</p><a class="hero-link" href="#vitrine">Conhecer a coleção ↓</a></section>
+<section class="shop" id="vitrine"><div class="section-heading"><div><p class="eyebrow">NOSSA SELEÇÃO</p><h2>Vitrine da loja</h2></div><button class="text-button" id="adminOpen">Área da loja</button></div><div class="filters" id="filters"></div><div class="products" id="products"></div></section>
+</main>
+<footer><b>LÍDER ENCANTADORA</b><p>Elegância, estilo e autenticidade.</p><span id="footerAddress"></span><p><a id="instagramLink" target="_blank" rel="noopener">Instagram da loja</a></p></footer>
+<div class="overlay" id="cartOverlay" hidden><section class="drawer"><button class="close" data-close="cartOverlay">Fechar ✕</button><p class="eyebrow">SEUS FAVORITOS</p><h2>Sua sacola</h2><div id="cartItems"></div><div class="total"><span>Total</span><b id="cartTotal">R$ 0,00</b></div><label>Seu nome<input id="customerName" placeholder="Nome completo"></label><label>WhatsApp<input id="customerPhone" placeholder="(DDD) número"></label><label>Endereço para entrega (opcional)<input id="customerAddress" placeholder="Rua, número, bairro"></label><button class="primary full" id="checkoutBtn">Enviar pedido pelo WhatsApp</button><p class="hint">O pedido será enviado para a loja. O pagamento e a confirmação do Pix serão combinados diretamente com a atendente.</p></section></div>
+<div class="overlay" id="adminOverlay" hidden><section class="drawer admin-drawer"><button class="close" data-close="adminOverlay">Fechar ✕</button>
+<div id="adminLogin"><p class="eyebrow">ACESSO DA LOJA</p><h2>Painel administrativo</h2><p class="hint">Esta versão protege o painel somente neste navegador. Não use como autenticação definitiva de uma loja com dados sincronizados.</p><label>Senha do painel<input id="adminPassword" type="password" placeholder="Informe sua senha"></label><button class="primary full" id="adminEnter">Entrar</button></div>
+<div id="adminPanel" hidden>
+<div class="admin-heading"><div><p class="eyebrow">LÍDER ENCANTADORA</p><h2>Painel da loja</h2></div><button class="text-button" id="adminExit">Sair</button></div>
+<nav class="admin-tabs"><button class="tab active" data-tab="dashboard">Visão geral</button><button class="tab" data-tab="products">Produtos</button><button class="tab" data-tab="promotions">Promoções</button><button class="tab" data-tab="settings">Configurações</button></nav>
+<section class="tab-panel" id="tab-dashboard"><h3>Resumo da loja</h3><div class="stats"><article><small>Produtos cadastrados</small><b id="statProducts">0</b></article><article><small>Em promoção</small><b id="statPromos">0</b></article><article><small>Itens com estoque baixo</small><b id="statLow">0</b></article></div><div class="notice"><b>Importante</b><p>Os dados ficam salvos somente neste aparelho. Os pedidos são enviados por WhatsApp e precisam ser confirmados manualmente. Para administrar de vários celulares, será necessário conectar um banco de dados e login seguro.</p></div><button class="primary full" data-goto="products">+ Cadastrar produto</button></section>
+<section class="tab-panel" id="tab-products" hidden><div class="panel-title"><h3>Produtos</h3><button class="primary" id="newProduct">+ Novo produto</button></div><div id="adminProducts" class="admin-list"></div>
+<form id="productForm" class="editor" hidden><div class="editor-top"><h3 id="formTitle">Novo produto</h3><button type="button" class="text-button" id="cancelEdit">Cancelar</button></div><input id="pId" type="hidden">
+<label>Nome do produto<input id="pName" required maxlength="90" placeholder="Ex.: Vestido floral"></label>
+<div class="form-grid"><label>Preço normal (R$)<input id="pPrice" type="number" min="0" step="0.01" required placeholder="0,00"></label><label>Categoria<select id="pCategory"><option>Moda feminina</option><option>Moda infantil</option><option>Conjuntos</option><option>Vestidos</option><option>Blusas</option><option>Calças</option><option>Shorts e saias</option><option>Acessórios</option><option>Outros</option></select></label></div>
+<label class="check-row"><input type="checkbox" id="pOnSale"> Produto em promoção</label><div id="saleFields" hidden><label>Preço promocional (R$)<input id="pSalePrice" type="number" min="0" step="0.01" placeholder="0,00"></label></div>
+<div class="form-grid"><label>Estoque total<input id="pStock" type="number" min="0" step="1" value="1" required></label><label>Tamanhos disponíveis<input id="pSizes" placeholder="Ex.: P, M, G, GG"></label></div>
+<label>Cores disponíveis<input id="pColors" placeholder="Ex.: Preto, rosa, branco"></label>
+<label>Foto do produto <span class="hint inline">Escolha uma imagem da galeria do celular.</span><input id="pImageFile" type="file" accept="image/*"></label><div id="imagePreview" class="image-preview" hidden><img id="previewImg" alt="Prévia do produto"><button type="button" class="text-button" id="removeImage">Remover foto</button></div>
+<label>Descrição<textarea id="pDescription" rows="3" maxlength="500" placeholder="Detalhes, tecido, caimento..."></textarea></label>
+<div class="editor-actions"><button class="primary" type="submit">Salvar produto</button><button class="secondary" type="button" id="cancelEdit2">Cancelar</button></div><p class="hint">A foto é reduzida para economizar espaço no aparelho. Evite cadastrar muitas imagens grandes nesta versão local.</p></form></section>
+<section class="tab-panel" id="tab-promotions" hidden><h3>Vitrine de promoções</h3><p class="hint">Os produtos marcados como “em promoção” aparecem com o preço promocional na vitrine.</p><div id="promotionList" class="admin-list"></div></section>
+<section class="tab-panel" id="tab-settings" hidden><h3>Dados da loja</h3><label>WhatsApp da loja com DDD e código do país<input id="storeWhatsApp" placeholder="55DDDNUMERO"></label><label>Chave Pix para informar às clientes<input id="storePix" placeholder="Sua chave Pix"></label><label>Endereço da loja<input id="storeAddress" value="Rua Lagoa do Padre, 623 — Pilão Arcado, BA"></label><label>Instagram<input id="storeInstagram" placeholder="https://www.instagram.com/liderencantadora/"></label><button class="primary full" id="saveSettings">Salvar configurações</button><div class="notice"><b>Sobre os dados</b><p>Produtos, fotos, carrinho e configurações são armazenados localmente neste aparelho. Limpar os dados do navegador pode apagar essas informações. Faça cópias de segurança. Esta versão não tem banco de dados compartilhado.</p></div></section>
+</div></section></div>
+<div class="toast" id="toast" role="status"></div><script src="./app.js"></script>
+</body></html>

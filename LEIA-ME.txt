@@ -1,24 +1,26 @@
-LÍDER ENCANTADORA — VERSÃO SIMPLES PARA GITHUB PAGES
+LÍDER ENCANTADORA — ATUALIZAÇÃO DO PAINEL (VERSÃO LOCAL)
 
-COMO PUBLICAR
-1. Crie um repositório público chamado lider-encantadora.
-2. Extraia este ZIP.
-3. Envie TODOS os arquivos desta pasta diretamente para a raiz do repositório (não envie o ZIP).
-4. No GitHub: Settings > Pages > Deploy from a branch > main > /(root) > Save.
-5. Aguarde a publicação e abra o link HTTPS do GitHub Pages.
-6. No Android, abra o link no Chrome > menu ⋮ > Instalar app ou Adicionar à tela inicial.
+O QUE FOI MELHORADO
+- Painel administrativo dividido em Visão geral, Produtos, Promoções e Configurações.
+- Cadastro de fotos diretamente pela galeria do celular.
+- Redução automática das fotos para ocupar menos espaço.
+- Cadastro de tamanhos, cores e estoque.
+- Preço normal e preço promocional.
+- Edição e exclusão de produtos.
+- Produtos em promoção recebem selo e preço especial na vitrine.
+- Carrinho não reduz o estoque antes de a loja confirmar o pedido.
+- Mantida a identidade visual rosa, creme e elegante.
 
-ARQUIVOS
-index.html, style.css, app.js, manifest.json, sw.js e icon.svg devem ficar todos juntos na raiz.
+COMO ATUALIZAR O SITE NO GITHUB
+1. Abra o repositório no GitHub.
+2. Entre na pasta principal onde estão index.html, app.js e style.css.
+3. Substitua os arquivos antigos pelos arquivos deste pacote: index.html, app.js, style.css e LEIA-ME.txt.
+4. Mantenha também manifest.json, sw.js e icon.svg existentes.
+5. Aguarde a publicação do GitHub Pages.
+6. No Android, feche o app da loja e abra novamente. Se não atualizar, abra o site no Chrome e atualize a página.
 
-IMPORTANTE SOBRE ESTA VERSÃO
-- É uma PWA estática para GitHub Pages.
-- O catálogo, configurações e senha administrativa ficam no armazenamento local do navegador daquele aparelho.
-- Isso NÃO sincroniza alterações entre o celular da dona e os celulares das clientes.
-- O pedido é enviado por WhatsApp. Cadastre o WhatsApp da loja no painel administrativo.
-- Configure o WhatsApp e a chave Pix no painel.
-- Não existe confirmação automática de pagamento Pix nesta versão.
-- Para uma loja real com produtos, estoque, pedidos e administração sincronizados em vários aparelhos, será necessário ligar esta interface a um backend/banco de dados externo. GitHub Pages sozinho não fornece isso.
-- O painel inicial cria senha local no próprio aparelho. Não use essa senha como segurança de um sistema multiusuário.
-
-Este pacote é a versão simplificada para publicar e instalar pelo link do GitHub Pages; não substitui o sistema completo com backend.
+IMPORTANTE — LIMITAÇÃO DESTA VERSÃO
+Esta é uma melhoria do visual e das funções locais. Produtos, imagens, senha, carrinho e configurações continuam salvos somente no navegador/aparelho em que forem cadastrados. Não há sincronização entre celulares nem banco de dados online.
+A senha local não é uma autenticação segura para uma loja em produção. Não use dados confidenciais.
+Os pedidos são encaminhados ao WhatsApp; o estoque e o pagamento precisam ser confirmados manualmente pela loja. Não há integração ou confirmação automática do Pix.
+Para a loja funcionar de verdade em vários aparelhos, será necessário criar a etapa seguinte com backend, banco de dados, armazenamento online de fotos e login seguro. O GitHub Pages sozinho hospeda somente arquivos estáticos.
