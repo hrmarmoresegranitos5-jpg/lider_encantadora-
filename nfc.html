@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b86f88">
+<meta name="description" content="LÍDER ENCANTADORA — moda feminina e infantil. WhatsApp, Instagram, localização e Pix.">
+<link rel="icon" href="./icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;700&display=swap">
+<title>LÍDER ENCANTADORA</title>
+<style>
+:root{
+  --rose:#b86f88; --rose-deep:#8d4f67; --blush:#fff8f8; --ink:#4a2f3a; --muted:#866b78; --line:#eadde2; --card:#fff;
+  --serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --sans:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+html[data-theme="dourado"]{--rose:#94701f}html[data-theme="verde"]{--rose:#3f7a5c}html[data-theme="lilas"]{--rose:#7a58a8}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--blush);color:var(--ink);font-family:var(--sans);line-height:1.5;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.wrap{max-width:440px;margin:0 auto;padding:0 20px 40px}
+header{text-align:center;padding:48px 0 28px}
+.crown{display:block;font-size:2.4rem;line-height:1;color:var(--rose)}
+h1{margin:10px 0 6px;font-family:var(--serif);font-weight:600;font-size:clamp(2.1rem,10vw,2.8rem);letter-spacing:.04em;line-height:1.05}
+h1 b{color:var(--rose);font-weight:600}
+.tag{margin:0;color:var(--muted)}
+.msg{margin:18px auto 0;max-width:34ch;color:var(--ink)}
+.msg:empty{display:none}
+.main-cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:6px 0 18px;padding:18px 20px;
+  border-radius:16px;background:var(--rose);color:#fff;font:700 1.1rem var(--sans);text-decoration:none;border:0}
+.list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:16px 18px;min-height:56px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--ink);text-decoration:none;font:600 1rem var(--sans);text-align:left;cursor:pointer}
+.row small{display:block;font-weight:400;color:var(--muted);font-size:.85rem}
+.row .go{color:var(--rose);font-size:1.2rem}
+.row[hidden]{display:none}
+.main-cta:focus-visible,.row:focus-visible{outline:3px solid var(--rose-deep);outline-offset:3px}
+.addr{margin:26px 0 0;text-align:center;color:var(--muted);font-size:.9rem}
+.toast{min-height:24px;margin:14px 0 0;text-align:center;color:var(--rose-deep);font-weight:600}
+@media (prefers-color-scheme:dark){
+  :root{--blush:#2a1d23;--ink:#f6e9ee;--muted:#c6a9b6;--line:#4a3540;--card:#35252d;--rose-deep:#e3a6bb}
+  .main-cta{background:var(--rose)}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <span class="crown" aria-hidden="true">♕</span>
+    <h1>LÍDER <b>ENCANTADORA</b></h1>
+    <p class="tag">Moda feminina e infantil</p>
+    <p class="msg" id="msg"></p>
+  </header>
+
+  <a class="main-cta" id="wa" href="#" hidden>Chamar no WhatsApp</a>
+
+  <ul class="list">
+    <li><a class="row" href="./"><span>Ver a loja online<small>Escolha suas peças e faça o pedido</small></span><span class="go" aria-hidden="true">›</span></a></li>
+    <li><a class="row" id="ig" href="#" target="_blank" rel="noopener" hidden><span>Instagram<small>Novidades e lançamentos</small></span><span class="go" aria-hidden="true">›</span></a></li>
+    <li><a class="row" id="map" href="#" target="_blank" rel="noopener" hidden><span>Como chegar<small>Abrir no mapa</small></span><span class="go" aria-hidden="true">›</span></a></li>
+    <li><button class="row" id="pix" type="button" hidden><span>Copiar chave Pix<small>Cole no app do seu banco</small></span><span class="go" aria-hidden="true">⧉</span></button></li>
+    <li><button class="row" id="wifi" type="button" hidden><span>Wi-Fi: <span id="wifiName"></span><small>Toque para copiar a senha</small></span><span class="go" aria-hidden="true">⧉</span></button></li>
+  </ul>
+  <ul class="list" id="extra" style="margin-top:10px"></ul>
+
+  <p class="toast" id="toast" role="status" aria-live="polite"></p>
+  <p class="addr" id="addr"></p>
+</main>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,doc,getDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig={apiKey:"AIzaSyBE7ZGMuPTeRowEH9XyZw5h_uGgGe592ao",authDomain:"lider-encantadora-2c99c.firebaseapp.com",projectId:"lider-encantadora-2c99c",storageBucket:"lider-encantadora-2c99c.firebasestorage.app",messagingSenderId:"812241975670",appId:"1:812241975670:web:a41dd38b5d6b2efe6da257"};
+
+// Valores de reserva, usados se a leitura do Firestore falhar.
+const FALLBACK={
+  whatsapp:"",
+  pix:"",
+  address:"Rua Lagoa do Padre, 623 — Pilão Arcado, BA",
+  instagram:"https://www.instagram.com/liderencantadora/",
+  nfcMessage:""
+};
+
+const $=s=>document.querySelector(s);
+let pixKey="",wifiPass="";
+
+function render(s){
+  document.documentElement.dataset.theme=["dourado","verde","lilas"].includes(s.nfcTheme)?s.nfcTheme:"rosa";
+  const wa=String(s.whatsapp||"").replace(/\D/g,"");
+  if(wa){
+    const text=encodeURIComponent("Olá! Vim pela plaquinha da loja.");
+    $("#wa").href=`https://wa.me/${wa}?text=${text}`;
+    $("#wa").hidden=false;
+  }
+  if(s.instagram){$("#ig").href=s.instagram;$("#ig").hidden=false}
+  if(s.address){
+    $("#map").href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(s.address);
+    $("#map").hidden=false;
+    $("#addr").textContent=s.address;
+  }
+  if(s.pix){pixKey=String(s.pix);$("#pix").hidden=false}
+  if(s.wifiName&&s.wifiPassword){
+    $("#wifiName").textContent=s.wifiName;
+    wifiPass=String(s.wifiPassword);
+    $("#wifi").hidden=false;
+  }
+  const extra=$("#extra");
+  extra.textContent="";
+  (Array.isArray(s.nfcLinks)?s.nfcLinks:[]).slice(0,8).forEach(l=>{
+    const label=String(l&&l.label||"").trim(),url=String(l&&l.url||"").trim();
+    if(!label||!/^(https?:\/\/|tel:|mailto:)/i.test(url))return;
+    const li=document.createElement("li"),a=document.createElement("a"),t=document.createElement("span"),g=document.createElement("span");
+    a.className="row";a.href=url;
+    if(/^https?:/i.test(url)){a.target="_blank";a.rel="noopener"}
+    t.textContent=label;g.className="go";g.setAttribute("aria-hidden","true");g.textContent="›";
+    a.append(t,g);li.appendChild(a);extra.appendChild(li);
+  });
+  $("#msg").textContent=s.nfcMessage||"";
+}
+
+async function copyText(text,okMsg){
+  const toast=$("#toast");
+  try{
+    await navigator.clipboard.writeText(text);
+    toast.textContent=okMsg;
+  }catch(e){
+    const t=document.createElement("textarea");
+    t.value=text;t.style.position="fixed";t.style.opacity="0";
+    document.body.appendChild(t);t.select();
+    try{document.execCommand("copy");toast.textContent=okMsg}
+    catch(err){toast.textContent="Não foi possível copiar. Copie à mão: "+text}
+    t.remove();
+  }
+}
+$("#pix").addEventListener("click",()=>copyText(pixKey,"Chave Pix copiada."));
+$("#wifi").addEventListener("click",()=>copyText(wifiPass,"Senha do Wi-Fi copiada."));
+
+render(FALLBACK);
+try{
+  const db=getFirestore(initializeApp(firebaseConfig));
+  const snap=await getDoc(doc(db,"settings","store"));
+  if(snap.exists()){const d=Object.fromEntries(Object.entries(snap.data()).filter(([k,v])=>v!==""&&v!=null));render({...FALLBACK,...d})}
+}catch(e){console.error(e)}
+</script>
+</body>
+</html>
