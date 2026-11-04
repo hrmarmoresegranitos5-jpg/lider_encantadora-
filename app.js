@@ -1,118 +1,43 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBEZ7GMuPTeRowEH9XyZw5h_uGgGe592ao",
-  authDomain: "lider-encantadora-2c99c.firebaseapp.com",
-  projectId: "lider-encantadora-2c99c",
-  storageBucket: "lider-encantadora-2c99c.firebasestorage.app",
-  messagingSenderId: "812241975670",
-  appId: "1:812241975670:web:a41dd38b5d6b2efe6da257"
-};
-const ADMIN_EMAILS = ["hrproplay@gmail.com"]; // Deve corresponder ao e-mail autorizado nas regras do Firestore.
-// Cloudinary: dados públicos próprios para upload unsigned; nunca coloque API Secret no navegador.
-const CLOUDINARY_CLOUD_NAME = "zcbedlgt";
-const CLOUDINARY_UPLOAD_PRESET = "lider_encantadora";
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
-const $ = s => document.querySelector(s);
-const money = n => Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const read = (k,d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
-let products=[], cart=read("le_cart",[]), settings={whatsapp:"",pix:"",address:"Rua Lagoa do Padre, 623 — Pilão Arcado, BA",instagram:"https://www.instagram.com/liderencantadora/"};
-let installPrompt=null, category="Todas", draftImage="", editingId="", currentUser=null, stopProducts=null, stopSettings=null;
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,collection,onSnapshot,getDocs,addDoc,updateDoc,deleteDoc,query,orderBy} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyBE7ZGMuPTeRowEH9XyZw5h_uGgGe592ao",authDomain:"lider-encantadora-2c99c.firebaseapp.com",projectId:"lider-encantadora-2c99c",storageBucket:"lider-encantadora-2c99c.firebasestorage.app",messagingSenderId:"812241975670",appId:"1:812241975670:web:a41dd38b5d6b2efe6da257"};
+const ADMIN_EMAILS=["hrproplay@gmail.com"],app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2800)}
-function priceOf(p){return p.onSale&&Number(p.salePrice)>0?Number(p.salePrice):Number(p.price)}
-function isAdmin(user=currentUser){return !!user && ADMIN_EMAILS.includes((user.email||"").toLowerCase())}
-function saveCart(){localStorage.setItem("le_cart",JSON.stringify(cart))}
-function setAuthMessage(t){$("#authMessage").textContent=t}
-function startLiveData(){
-  if(stopProducts)stopProducts(); if(stopSettings)stopSettings();
-  stopProducts=onSnapshot(collection(db,"products"),snap=>{
-    products=snap.docs.map(d=>({id:d.id,...d.data()})); render();
-    if(!$("#adminPanel").hidden){renderAdminProducts();renderStats();renderPromotions()}
-  },err=>{console.error(err);toast("Não foi possível carregar os produtos. Confira as regras do Firestore.")});
-  stopSettings=onSnapshot(doc(db,"settings","store"),snap=>{
-    if(snap.exists())settings={...settings,...snap.data()};
-    render();
-    if(!$("#adminPanel").hidden){$("#storeWhatsApp").value=settings.whatsapp||"";$("#storePix").value=settings.pix||"";$("#storeAddress").value=settings.address||"";$("#storeInstagram").value=settings.instagram||""}
-  },err=>console.error(err));
-}
-function render(){
- const cats=["Todas",...new Set(products.map(p=>p.category||"Outros"))];
- $("#filters").innerHTML=cats.map(c=>`<button class="filter ${category===c?"active":""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
- $("#products").innerHTML=products.filter(p=>category==="Todas"||p.category===category).map(p=>{
-  const sale=p.onSale&&Number(p.salePrice)>0;
-  return `<article class="product"><div class="photo">${p.image?`<img src="${p.image}" alt="${esc(p.name)}">`:`<div class="placeholder">♕<br>LÍDER ENCANTADORA</div>`}${sale?'<span class="sale-badge">OFERTA</span>':""}</div><div class="product-info"><small>${esc(p.category)}</small><h3>${esc(p.name)}</h3><p>${esc(p.description||"")}</p>${p.sizes?`<p><b>Tamanhos:</b> ${esc(p.sizes)}</p>`:""}${p.colors?`<p><b>Cores:</b> ${esc(p.colors)}</p>`:""}<div class="price">${sale?`<del>${money(p.price)}</del> `:""}${money(priceOf(p))}</div><button class="primary" data-add="${esc(p.id)}" ${Number(p.stock)<1?"disabled":""}>${Number(p.stock)>0?"Adicionar à sacola":"Esgotado"}</button></div></article>`
- }).join("")||'<div class="empty">Em breve, novidades na nossa vitrine.</div>';
- $("#cartCount").textContent=cart.reduce((n,x)=>n+x.qty,0);$("#footerAddress").textContent=settings.address||"";
- $("#instagramLink").href=settings.instagram||"https://www.instagram.com/liderencantadora/";renderCart();
-}
-function renderCart(){
- $("#cartItems").innerHTML=cart.map(x=>`<div class="cart-line"><div><b>${esc(x.name)}</b><br>${money(x.price)} cada</div><div class="qty"><button data-qty="${esc(x.id)}" data-delta="-1">−</button>${x.qty}<button data-qty="${esc(x.id)}" data-delta="1">+</button></div></div>`).join("")||'<p class="hint">Sua sacola está vazia.</p>';
- $("#cartTotal").textContent=money(cart.reduce((n,x)=>n+x.price*x.qty,0));
-}
-function openTab(name){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));document.querySelectorAll(".tab-panel").forEach(p=>p.hidden=p.id!==`tab-${name}`);if(name==="dashboard")renderStats();if(name==="products")renderAdminProducts();if(name==="promotions")renderPromotions()}
-function renderStats(){$("#statProducts").textContent=products.length;$("#statPromos").textContent=products.filter(p=>p.onSale&&Number(p.salePrice)>0).length;$("#statLow").textContent=products.filter(p=>Number(p.stock)<=2).length}
-function renderAdminProducts(){$("#adminProducts").innerHTML=products.map(p=>`<article class="admin-product"><div class="admin-thumb">${p.image?`<img src="${p.image}" alt="">`:"♕"}</div><div class="admin-product-info"><b>${esc(p.name)}</b><small>${esc(p.category)} · Estoque: ${p.stock}</small><strong>${money(priceOf(p))}${p.onSale?" · PROMOÇÃO":""}</strong></div><div class="admin-actions"><button data-edit="${esc(p.id)}">Editar</button><button data-remove="${esc(p.id)}" class="danger">Excluir</button></div></article>`).join("")||'<p class="hint">Nenhum produto cadastrado ainda.</p>'}
-function renderPromotions(){const list=products.filter(p=>p.onSale&&Number(p.salePrice)>0);$("#promotionList").innerHTML=list.map(p=>`<article class="admin-product"><div class="admin-thumb">${p.image?`<img src="${p.image}" alt="">`:"♕"}</div><div class="admin-product-info"><b>${esc(p.name)}</b><small>De ${money(p.price)} por</small><strong>${money(p.salePrice)}</strong></div><button data-edit="${esc(p.id)}">Editar</button></article>`).join("")||'<p class="hint">Nenhum produto em promoção no momento.</p>'}
-function resetForm(){editingId="";draftImage="";$("#productForm").reset();$("#pId").value="";$("#pStock").value=1;$("#formTitle").textContent="Novo produto";$("#saleFields").hidden=true;$("#imagePreview").hidden=true;$("#pImageFile").value="";$("#productForm").hidden=true}
-function fillForm(p){editingId=p.id;draftImage=p.image||"";$("#pId").value=p.id;$("#pName").value=p.name;$("#pPrice").value=p.price;$("#pCategory").value=p.category||"Outros";$("#pStock").value=p.stock;$("#pSizes").value=p.sizes||"";$("#pColors").value=p.colors||"";$("#pDescription").value=p.description||"";$("#pOnSale").checked=!!p.onSale;$("#pSalePrice").value=p.salePrice||"";$("#saleFields").hidden=!p.onSale;$("#formTitle").textContent="Editar produto";$("#pImageFile").value="";if(draftImage){$("#previewImg").src=draftImage;$("#imagePreview").hidden=false}else $("#imagePreview").hidden=true;$("#productForm").hidden=false;$("#productForm").scrollIntoView({behavior:"smooth",block:"start"})}
-function openAdmin(){$("#adminOverlay").hidden=false;$("#adminPanel").hidden=true;$("#adminLogin").hidden=false;$("#adminEmail").value="";$("#adminPassword").value="";setAuthMessage("")}
-$("#filters").addEventListener("click",e=>{const b=e.target.closest("[data-cat]");if(b){category=b.dataset.cat;render()}});
-$("#products").addEventListener("click",e=>{const b=e.target.closest("[data-add]");if(!b)return;const p=products.find(x=>x.id===b.dataset.add);if(!p)return;const line=cart.find(x=>x.id===p.id),already=line?.qty||0;if(already>=Number(p.stock))return toast("Quantidade maior que o estoque disponível.");if(line)line.qty++;else cart.push({id:p.id,name:p.name,price:priceOf(p),qty:1});saveCart();render();toast("Adicionado à sacola!")});
-$("#cartItems").addEventListener("click",e=>{const b=e.target.closest("[data-qty]");if(!b)return;const x=cart.find(i=>i.id===b.dataset.qty);if(!x)return;const d=Number(b.dataset.delta),p=products.find(i=>i.id===x.id);if(d>0&&p&&x.qty>=Number(p.stock))return toast("Sem estoque disponível.");x.qty+=d;if(x.qty<=0)cart=cart.filter(i=>i.id!==x.id);saveCart();render()});
-$("#cartOpen").onclick=()=>$("#cartOverlay").hidden=false;$("#adminOpen").onclick=openAdmin;
-document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$("#"+b.dataset.close).hidden=true);
-$("#adminEnter").onclick=async()=>{
- const email=$("#adminEmail").value.trim().toLowerCase(),password=$("#adminPassword").value;
- if(!email||!password)return setAuthMessage("Informe o e-mail e a senha.");
- if(!ADMIN_EMAILS.includes(email))return setAuthMessage("Este e-mail não está autorizado para administrar a loja.");
- setAuthMessage("Verificando acesso...");
- try{const cred=await signInWithEmailAndPassword(auth,email,password);if(!isAdmin(cred.user)){await signOut(auth);throw new Error("Conta sem permissão administrativa.")}$("#adminLogin").hidden=true;$("#adminPanel").hidden=false;$("#storeWhatsApp").value=settings.whatsapp||"";$("#storePix").value=settings.pix||"";$("#storeAddress").value=settings.address||"";$("#storeInstagram").value=settings.instagram||"";openTab("dashboard");setAuthMessage("")}
- catch(err){console.error(err);setAuthMessage(err.code==="auth/invalid-credential"?"E-mail ou senha incorretos. Confira o usuário cadastrado no Firebase.":(err.message||"Não foi possível entrar."))}
-};
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
-document.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{openTab(b.dataset.goto);resetForm()});
-$("#newProduct").onclick=()=>{resetForm();$("#productForm").hidden=false;$("#productForm").scrollIntoView({behavior:"smooth"})};
-$("#cancelEdit").onclick=resetForm;$("#cancelEdit2").onclick=resetForm;
-$("#pOnSale").onchange=()=>$("#saleFields").hidden=!$("#pOnSale").checked;
-$("#pImageFile").onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(!ALLOWED_IMAGE_TYPES.includes(file.type))return toast("Use uma foto JPG, PNG ou WEBP.");if(file.size>MAX_IMAGE_BYTES)return toast("A foto deve ter no máximo 5 MB.");try{draftImage=await compressImage(file);$("#previewImg").src=draftImage;$("#imagePreview").hidden=false;toast("Foto pronta. Ela será enviada ao salvar o produto.")}catch(err){console.error(err);toast("Não foi possível preparar essa foto.")}};
-function compressImage(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{const max=1200,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);let quality=.82,data=canvas.toDataURL("image/jpeg",quality);while(data.length>1500000&&quality>.45){quality-=.07;data=canvas.toDataURL("image/jpeg",quality)}if(data.length>1500000)return reject(new Error("Foto muito grande após compressão"));resolve(data)};img.src=reader.result};reader.readAsDataURL(file)})}
-async function uploadProductImage(dataUrl){
- if(!dataUrl?.startsWith("data:image/"))return dataUrl||"";
- const body=new FormData();body.append("file",dataUrl);body.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
- const response=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,{method:"POST",body});
- const result=await response.json();
- if(!response.ok||!result.secure_url)throw new Error(result.error?.message||"Falha no envio da foto ao Cloudinary.");
- return result.secure_url;
-}
-$("#removeImage").onclick=()=>{draftImage="";$("#pImageFile").value="";$("#imagePreview").hidden=true};
-$("#productForm").onsubmit=async e=>{
- e.preventDefault();if(!isAdmin())return toast("Entre com a conta autorizada antes de salvar.");
- const name=$("#pName").value.trim(),price=Number($("#pPrice").value),stock=Math.max(0,Number($("#pStock").value)),onSale=$("#pOnSale").checked,salePrice=Number($("#pSalePrice").value);
- if(!name||price<0||!Number.isFinite(price))return toast("Confira o nome e o preço.");
- if(onSale&&(!salePrice||salePrice<=0||salePrice>=price))return toast("O preço promocional deve ser menor que o preço normal.");
- const old=products.find(p=>p.id===editingId),id=editingId||crypto.randomUUID();
- const p={name,price,category:$("#pCategory").value,stock,onSale,salePrice:onSale?salePrice:0,sizes:$("#pSizes").value.trim(),colors:$("#pColors").value.trim(),image:draftImage||old?.image||"",description:$("#pDescription").value.trim(),updatedAt:new Date().toISOString()};
- const submitButton=$("#productForm button[type=submit]");
- try{submitButton.disabled=true;submitButton.textContent="Enviando...";toast(draftImage.startsWith("data:image/")?"Enviando foto para a nuvem...":"Salvando produto na loja...");p.image=await uploadProductImage(draftImage||old?.image||"");p.imageProvider=p.image?"cloudinary":(old?.imageProvider||"");await setDoc(doc(db,"products",id),p);resetForm();toast(old?"Produto atualizado para todos!":"Produto publicado para todos!")}
- catch(err){console.error(err);toast(err.code==="permission-denied"?"Sem permissão. Confira as regras do Firestore.":(err.message||"Erro ao salvar produto. Confira sua conexão."))}
- finally{submitButton.disabled=false;submitButton.textContent="Salvar produto"}
-};
-$("#adminProducts").onclick=async e=>{const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-remove]");if(edit){const p=products.find(x=>x.id===edit.dataset.edit);if(p)fillForm(p)}if(del){if(!confirm("Deseja excluir este produto da loja?"))return;try{await deleteDoc(doc(db,"products",del.dataset.remove));toast("Produto excluído.")}catch(err){toast("Não foi possível excluir. Confira as permissões.")}}};
-$("#promotionList").onclick=e=>{const b=e.target.closest("[data-edit]");if(!b)return;openTab("products");const p=products.find(x=>x.id===b.dataset.edit);if(p)fillForm(p)};
-$("#saveSettings").onclick=async()=>{if(!isAdmin())return toast("Acesso administrativo necessário.");settings={whatsapp:$("#storeWhatsApp").value.replace(/\D/g,""),pix:$("#storePix").value.trim(),address:$("#storeAddress").value.trim(),instagram:$("#storeInstagram").value.trim()};try{await setDoc(doc(db,"settings","store"),settings);toast("Configurações sincronizadas!") }catch(err){console.error(err);toast("Não foi possível salvar as configurações.")}};
-$("#adminExit").onclick=async()=>{await signOut(auth);$("#adminPanel").hidden=true;$("#adminLogin").hidden=false;toast("Você saiu do painel.")};
-$("#checkoutBtn").onclick=()=>{if(!cart.length)return toast("Sua sacola está vazia.");const name=$("#customerName").value.trim(),phone=$("#customerPhone").value.trim(),address=$("#customerAddress").value.trim();if(!name||!phone)return toast("Informe seu nome e WhatsApp.");const total=cart.reduce((n,x)=>n+x.price*x.qty,0),lines=cart.map(x=>`${x.qty}x ${x.name} — ${money(x.price*x.qty)}`).join("\n");const msg=`Olá! Quero fazer um pedido na LÍDER ENCANTADORA:\n\n${lines}\n\nTotal: ${money(total)}\nCliente: ${name}\nContato: ${phone}\nEndereço: ${address||"A combinar"}\n\nGostaria de receber as informações para pagamento via Pix.`;if(settings.whatsapp){window.open(`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(msg)}`,"_blank");toast("Pedido preparado no WhatsApp. A loja confirmará estoque e pagamento.")}else{navigator.clipboard?.writeText(msg);toast("Configure o WhatsApp da loja no painel.")}};
-onAuthStateChanged(auth,user=>{
- currentUser=user;
- if(user&&isAdmin(user)){startLiveData();$("#adminLogin").hidden=true;$("#adminPanel").hidden=false;$("#storeWhatsApp").value=settings.whatsapp||"";$("#storePix").value=settings.pix||"";$("#storeAddress").value=settings.address||"";$("#storeInstagram").value=settings.instagram||"";openTab("dashboard")}
- else {if(stopProducts)stopProducts();if(stopSettings)stopSettings();startLiveData();$("#adminPanel").hidden=true;$("#adminLogin").hidden=false}
-});
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("#installBtn").hidden=false});
-$("#installBtn").onclick=async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$("#installBtn").hidden=true};
+const money=n=>Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+function showSettings(on){$("#loginCard").hidden=on;$("#settingsCard").hidden=!on}
+async function loadSettings(){const snap=await getDoc(doc(db,"settings","store"));const s=snap.exists()?snap.data():{};$("#whatsapp").value=s.whatsapp||"";$("#pix").value=s.pix||"";$("#address").value=s.address||"Rua Lagoa do Padre, 623 — Pilão Arcado, BA";$("#instagram").value=s.instagram||"https://www.instagram.com/liderencantadora/";$("#nfcMessage").value=s.nfcMessage||"";$("#wifiName").value=s.wifiName||"";$("#wifiPassword").value=s.wifiPassword||"";$("#nfcTheme").value=s.nfcTheme||"rosa";$("#storeUrl").value=s.storeUrl||"https://hrmarmoresegranitos5-jpg.github.io/lider_encantadora-/";$("#nfcSiteUrl").value=s.nfcSiteUrl||"";updateLinks();renderLinkRows(Array.isArray(s.nfcLinks)?s.nfcLinks:[])}
+$("#login").onclick=async()=>{const email=$("#email").value.trim().toLowerCase(),password=$("#password").value;if(!ADMIN_EMAILS.includes(email)){$("#loginStatus").textContent="Este e-mail não está autorizado.";return}try{$("#login").disabled=true;await signInWithEmailAndPassword(auth,email,password);$("#loginStatus").textContent=""}catch(e){console.error(e);$("#loginStatus").textContent="Não foi possível entrar. Confira e-mail, senha e configuração do Firebase."}finally{$("#login").disabled=false}};
+$("#save").onclick=async()=>{const whatsapp=$("#whatsapp").value.replace(/\D/g,"");if(whatsapp&&whatsapp.length<12){$("#saveStatus").textContent="Informe o WhatsApp com 55, DDD e número.";return}const data={whatsapp,pix:$("#pix").value.trim(),address:$("#address").value.trim(),instagram:$("#instagram").value.trim(),updatedAt:new Date().toISOString()};try{$("#save").disabled=true;await setDoc(doc(db,"settings","store"),data,{merge:true});$("#saveStatus").textContent="Configurações salvas."}catch(e){console.error(e);$("#saveStatus").textContent="Erro ao salvar. Confira as regras do Firestore."}finally{$("#save").disabled=false}};
+$("#logout").onclick=()=>signOut(auth);
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".tab-panel").forEach(x=>x.hidden=x.id!=="tab-"+b.dataset.tab)}));
+function clearProduct(){$("#productForm").reset();$("#productId").value="";$("#productStock").value=1;$("#productSubmit").textContent="Salvar produto";$("#productStatus").textContent=""}
+$("#productCancel").onclick=clearProduct;
+$("#productForm").onsubmit=async e=>{e.preventDefault();const price=Number($("#productPrice").value),sale=Number($("#productSalePrice").value||0),stock=Number($("#productStock").value);if(price<=0||stock<0)return $("#productStatus").textContent="Confira preço e estoque.";const data={name:$("#productName").value.trim(),category:$("#productCategory").value.trim()||"Outros",description:$("#productDescription").value.trim(),price,salePrice:sale,onSale:$("#productOnSale").checked&&sale>0,sizes:$("#productSizes").value.trim(),colors:$("#productColors").value.trim(),stock,image:$("#productImage").value.trim(),updatedAt:new Date().toISOString()};try{$("#productSubmit").disabled=true;const id=$("#productId").value;if(id)await updateDoc(doc(db,"products",id),data);else await addDoc(collection(db,"products"),{...data,createdAt:new Date().toISOString()});$("#productStatus").textContent="Produto salvo e enviado para a vitrine.";clearProduct()}catch(err){console.error(err);$("#productStatus").textContent="Não foi possível salvar. Verifique sua conexão e as regras do Firestore."}finally{$("#productSubmit").disabled=false}};
+function watchProducts(){onSnapshot(collection(db,"products"),snap=>{const items=snap.docs.map(d=>({id:d.id,...d.data()}));$("#adminProducts").innerHTML=items.map(p=>`<article class="admin-item">${p.image?`<img src="${esc(p.image)}" alt="">`:""}<div style="flex:1"><b>${esc(p.name||"Produto sem nome")}</b><small>${esc(p.category||"Outros")} · ${money(p.price)} · Estoque: ${Number(p.stock||0)}</small></div><div class="admin-item-actions"><button data-edit-product="${esc(p.id)}">Editar</button><button class="danger" data-delete-product="${esc(p.id)}">Excluir</button></div></article>`).join("")||"<p>Nenhum produto cadastrado.</p>"},err=>{console.error(err);$("#adminProducts").textContent="Erro ao carregar produtos. Verifique as regras do Firestore."})}
+$("#adminProducts").addEventListener("click",async e=>{const edit=e.target.closest("[data-edit-product]"),del=e.target.closest("[data-delete-product]");if(edit){const id=edit.dataset.editProduct;const snap=await getDoc(doc(db,"products",id));if(!snap.exists())return;const p=snap.data();$("#productId").value=id;$("#productName").value=p.name||"";$("#productCategory").value=p.category||"";$("#productDescription").value=p.description||"";$("#productPrice").value=p.price??"";$("#productSalePrice").value=p.salePrice||"";$("#productSizes").value=p.sizes||"";$("#productColors").value=p.colors||"";$("#productStock").value=p.stock??0;$("#productImage").value=p.image||"";$("#productOnSale").checked=!!p.onSale;$("#productSubmit").textContent="Atualizar produto";$("#productStatus").textContent="Editando: "+(p.name||"produto");document.querySelector('[data-tab="produtos"]').click();$("#productForm").scrollIntoView({behavior:"smooth"})}if(del&&confirm("Excluir este produto da vitrine?")){try{await deleteDoc(doc(db,"products",del.dataset.deleteProduct))}catch(err){console.error(err);alert("Não foi possível excluir. Confira as regras do Firestore.")}}});
+function watchOrders(){const q=query(collection(db,"orders"),orderBy("createdAt","desc"));onSnapshot(q,snap=>{const items=snap.docs.map(d=>({id:d.id,...d.data()}));$("#adminOrders").innerHTML=items.map(o=>`<article class="admin-item" style="display:block"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>Pedido ${esc(o.code||o.id)}</b><strong>${money(o.total)}</strong></div><small>${esc(o.customer?.name||"Cliente")} · ${esc(o.customer?.phone||"")} · ${o.createdAt?new Date(o.createdAt).toLocaleString("pt-BR"):""}</small><p>${(o.items||[]).map(i=>`${esc(i.qty)}x ${esc(i.name)}${i.size?" · "+esc(i.size):""}${i.color?" · "+esc(i.color):""}`).join("<br>")}</p><label>Status<select class="order-status" data-order-status="${esc(o.id)}">${["Recebido","Em separação","Aguardando pagamento","Pago","Enviado","Concluído","Cancelado"].map(st=>`<option ${o.status===st?"selected":""}>${st}</option>`).join("")}</select></label></article>`).join("")||"<p>Nenhum pedido recebido ainda.</p>"},err=>{console.error(err);$("#adminOrders").textContent="Erro ao carregar pedidos. Verifique as regras do Firestore."})}
+$("#adminOrders").addEventListener("change",async e=>{const el=e.target.closest("[data-order-status]");if(!el)return;try{await updateDoc(doc(db,"orders",el.dataset.orderStatus),{status:el.value,updatedAt:new Date().toISOString()})}catch(err){console.error(err);alert("Não foi possível atualizar o pedido.")}});
+function linkRow(l={}){const d=document.createElement("div");d.className="link-row";d.innerHTML=`<input class="lk-label" maxlength="30" placeholder="Nome do botão (ex.: Catálogo)" value="${esc(l.label)}"><input class="lk-url" placeholder="https://..." value="${esc(l.url)}"><button type="button" class="secondary lk-del">Remover botão</button>`;return d}
+function renderLinkRows(list){const box=$("#nfcLinks");box.innerHTML="";list.slice(0,8).forEach(l=>box.appendChild(linkRow(l)))}
+$("#nfcAddLink").onclick=()=>{const box=$("#nfcLinks");if(box.children.length>=8){$("#nfcStatus").textContent="Máximo de 8 botões extras.";return}box.appendChild(linkRow())};
+$("#nfcLinks").addEventListener("click",e=>{const b=e.target.closest(".lk-del");if(b)b.parentElement.remove()});
+$("#nfcSave").onclick=async()=>{const links=[];for(const r of document.querySelectorAll("#nfcLinks .link-row")){const label=r.querySelector(".lk-label").value.trim(),url=r.querySelector(".lk-url").value.trim();if(!label&&!url)continue;if(!label||!/^(https?:\/\/|tel:|mailto:)/i.test(url)){$("#nfcStatus").textContent="Cada botão precisa de um nome e de um link começando com https://, tel: ou mailto:.";return}links.push({label,url})}
+const wifiName=$("#wifiName").value.trim(),wifiPassword=$("#wifiPassword").value;if(wifiName&&!wifiPassword){$("#nfcStatus").textContent="Informe também a senha do Wi-Fi, ou apague o nome da rede.";return}
+const storeUrl=$("#storeUrl").value.trim(),nfcSiteUrl=$("#nfcSiteUrl").value.trim();if((storeUrl&&!/^https:\/\//i.test(storeUrl))||(nfcSiteUrl&&!/^https:\/\//i.test(nfcSiteUrl))){$("#nfcStatus").textContent="Os endereços dos sites devem começar com https://";return}
+const data={storeUrl,nfcSiteUrl,nfcMessage:$("#nfcMessage").value.trim(),wifiName,wifiPassword,nfcLinks:links,nfcTheme:$("#nfcTheme").value,updatedAt:new Date().toISOString()};try{$("#nfcSave").disabled=true;await setDoc(doc(db,"settings","store"),data,{merge:true});$("#nfcStatus").textContent="Plaquinha atualizada."}catch(e){console.error(e);$("#nfcStatus").textContent="Erro ao salvar. Confira as regras do Firestore."}finally{$("#nfcSave").disabled=false}};
+$("#nfcWrite").onclick=async()=>{const st=$("#nfcStatus");if(!("NDEFReader" in window)){st.textContent="Gravar tag só funciona no Chrome do Android. Abra o painel por lá.";return}try{const url=$("#nfcSiteUrl").value.trim();if(!/^https:\/\//i.test(url)){st.textContent="Preencha e salve o endereço do site da plaquinha antes de gravar.";return}st.textContent="Encoste a tag na parte de trás do celular…";await new NDEFReader().write({records:[{recordType:"url",data:url}]});st.textContent="Tag gravada com o endereço "+url}catch(e){console.error(e);st.textContent="Não foi possível gravar a tag. Tente de novo."}};
+const demoImg=l=>"data:image/svg+xml,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect width="400" height="500" fill="${l[1]}"/><text x="200" y="280" font-size="150" text-anchor="middle" fill="#fff" font-family="Georgia,serif">${l[0]}</text></svg>`);
+const DEMO=[["Vestido Floral Encanto","Feminino","Vestido midi leve, ideal para o verão.",129.9,99.9,"P, M, G","Rosa, Azul",8,"V","#b86f88"],["Blusa Cetim Elegance","Feminino","Blusa de cetim com caimento fluido.",79.9,0,"P, M, G, GG","Off-white, Preto",12,"B","#8d5c70"],["Calça Wide Leg Linho","Feminino","Calça ampla de linho, confortável e elegante.",149.9,119.9,"38, 40, 42, 44","Bege, Verde",6,"C","#7a9a86"],["Conjunto Infantil Princesa","Infantil","Conjunto de blusa e saia para meninas.",89.9,0,"2, 4, 6, 8","Rosa, Lilás",10,"P","#a98bc7"],["Macacão Infantil Soft","Infantil","Macacão macio para o dia a dia.",69.9,54.9,"1, 2, 3, 4","Azul, Amarelo",9,"M","#d9a45b"],["Cropped Renda","Feminino","Cropped de renda delicado.",59.9,0,"P, M, G","Branco, Preto",7,"R","#c27a93"]];
+$("#demoLoad").onclick=async()=>{const st=$("#nfcStatus"),b=$("#demoLoad");if(!confirm("Carregar o modelo de exemplo? Campos já preenchidos são mantidos."))return;try{b.disabled=true;st.textContent="Carregando modelo…";const snap=await getDoc(doc(db,"settings","store")),cur=snap.exists()?snap.data():{};
+const d={whatsapp:"5574900000000",pix:"chave-pix-de-exemplo",address:"Rua Lagoa do Padre, 623 — Pilão Arcado, BA",instagram:"https://www.instagram.com/liderencantadora/",nfcMessage:"Seja bem-vinda! Fique à vontade para experimentar as peças.",wifiName:"LiderEncantadora_Visitantes",wifiPassword:"bemvinda2026",nfcTheme:"rosa",nfcLinks:[{label:"Ver no Google Maps",url:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Rua Lagoa do Padre, 623, Pilão Arcado, BA")},{label:"Ligar para a loja",url:"tel:+5574900000000"}]};
+const out={};for(const k in d){const v=cur[k];out[k]=(v===undefined||v===null||v===""||(Array.isArray(v)&&!v.length))?d[k]:v}
+await setDoc(doc(db,"settings","store"),{...out,updatedAt:new Date().toISOString()},{merge:true});
+const have=(await getDocs(collection(db,"products"))).docs.some(x=>x.data().demo);
+if(!have)for(const p of DEMO){const now=new Date().toISOString();await addDoc(collection(db,"products"),{name:p[0],category:p[1],description:p[2],price:p[3],salePrice:p[4],onSale:p[4]>0,sizes:p[5],colors:p[6],stock:p[7],image:demoImg([p[8],p[9]]),demo:true,createdAt:now,updatedAt:now})}
+await loadSettings();st.textContent="Modelo carregado. Troque o WhatsApp e o Pix de exemplo pelos dados reais da loja."}catch(e){console.error(e);st.textContent="Não foi possível carregar o modelo. Confira o login e as regras do Firestore."}finally{b.disabled=false}};
+$("#demoRemove").onclick=async()=>{const st=$("#nfcStatus");if(!confirm("Remover os produtos de exemplo? Os produtos reais não são afetados."))return;try{const snap=await getDocs(collection(db,"products"));let n=0;for(const x of snap.docs)if(x.data().demo){await deleteDoc(x.ref);n++}st.textContent=n+" produto(s) de exemplo removido(s)."}catch(e){console.error(e);st.textContent="Não foi possível remover os exemplos."}};
+function updateLinks(){$("#storeLink").href=$("#storeUrl").value.trim()||"#";$("#nfcOpen").href=$("#nfcSiteUrl").value.trim()||"#"}
+["storeUrl","nfcSiteUrl"].forEach(i=>$("#"+i).addEventListener("input",updateLinks));
+onAuthStateChanged(auth,async user=>{if(user&&ADMIN_EMAILS.includes((user.email||"").toLowerCase())){showSettings(true);try{await loadSettings();watchProducts();watchOrders()}catch(e){console.error(e);$("#saveStatus").textContent="Não foi possível carregar os dados."}}else{showSettings(false);if(user)await signOut(auth)}});
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-render();
